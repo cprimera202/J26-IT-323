@@ -88,11 +88,11 @@ def evaluate(model, dataloader, criterion, device):
 
 # 4. Main Workflow
 def main():
-    parser = argparse.ArgumentParser(description="Train Pretrained Models on MMRDR-OCT")
-    parser.add_argument("--model_name", type=str, default="efficientnet_b0", 
+    parser = argparse.ArgumentParser(description="Train Pretrained Models on MMRDR-OCT with Weighted Loss")
+    parser.add_argument("--model_name", type=str, default="convnext_tiny", 
                         choices=["efficientnet_b0", "resnet50", "densenet121", "mobilenetv3_large_100", "convnext_tiny"],
                         help="Model architecture from timm")
-    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--epochs", type=int, default=15)
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=1e-4)
     args = parser.parse_args()
@@ -123,6 +123,16 @@ def main():
     df = pd.read_csv(csv_path)
     train_df, val_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df['grade'])
 
+    # Compute Inverse Class Weights for Imbalance Mitigation
+    class_counts = train_df['grade'].value_counts().sort_index().values
+    total_samples = len(train_df)
+    num_classes = len(class_counts)
+    weights = [total_samples / (num_classes * count) for count in class_counts]
+    class_weights = torch.tensor(weights, dtype=torch.float).to(device)
+
+    print(f"Training Class Distribution: {dict(zip(range(num_classes), class_counts))}")
+    print(f"Computed Class Penalty Weights: {class_weights.cpu().numpy().round(4)}")
+
     train_dataset = OCTDataset(train_df, base_dir, transform=data_transforms['train'])
     val_dataset = OCTDataset(val_df, base_dir, transform=data_transforms['val'])
 
@@ -133,7 +143,8 @@ def main():
     model = timm.create_model(args.model_name, pretrained=True, num_classes=3)
     model = model.to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    # Loss Function with Inverse Class Weights
+    criterion = nn.CrossEntropyLoss(weight=class_weights)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
     best_macro_f1 = 0.0
