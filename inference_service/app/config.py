@@ -30,7 +30,7 @@ class Settings:
         raw = os.environ.get("MODEL_STORE_DIR", "").strip()
         # Default: <project root>/model_store. Set MODEL_STORE_DIR to point at your
         # real Backend\model_store folder (recommended).
-        store = Path(raw).expanduser() if raw else PROJECT_ROOT / "model_store"
+        store = Path(raw).expanduser() if raw else PROJECT_ROOT / "backend" / "model_store"
         origins = os.environ.get("INFERENCE_ALLOWED_ORIGINS", "http://127.0.0.1:3000,http://localhost:3000")
         return Settings(
             model_store=store.resolve(),
