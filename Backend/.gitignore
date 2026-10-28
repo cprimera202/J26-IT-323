@@ -1,5 +1,0 @@
-__pycache__/
-*.pyc
-.venv/
-model_store/*/*.pth
-model_store/*/*.pt
