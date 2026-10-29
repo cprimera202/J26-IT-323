@@ -1,0 +1,12 @@
+# Install PyTorch + TorchVision FIRST using the version you trained with (see README), e.g. CPU:
+#   py -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# They are intentionally NOT pinned here so this file never upgrades your working install.
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+pillow>=10.0
+numpy>=1.24
+opencv-python-headless>=4.8
+segmentation-models-pytorch>=0.3.3
+pytest>=8.0
+httpx>=0.27
